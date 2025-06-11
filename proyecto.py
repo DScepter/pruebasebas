@@ -7,7 +7,7 @@ window = display.set_mode((win_width, win_height))
 display.set_caption("Tirador")
 background = transform.scale(image.load("galaxy.jpg"), (win_width, win_height))
 mixer.init()
-mixer.music.load("Movement Proposition.mp3")
+mixer.music.load("fire.ogg")
 mixer.music.play()
 fire_sound=mixer.Sound("fire.ogg")
 
@@ -63,19 +63,33 @@ class Player(GameSprite):
 
 class Ball(GameSprite):
     def update(self):
-        self.rect.y += self.speed
-        global lost
-        if self.rect.x > 500:
-            lose1 = False
-        elif self.rect.x > 500:
-            lose2 = False
+        speed_x = self.speed
+        speed_y = self.speed
+
+        self.rect.y += speed_x
+        self.rect.x += speed_y
+
+        if sprite.collide_rect(racket1, self) or sprite.collide_rect(racket2, self):
+            speed_x *= -1
+            speed_y *= 1
+        
+        if self.rect.y > win_height-50 or self.rect.y < 0:
+            speed_y *= -1
+
+        if self.rect.x < 0:
+            finish = True
+            window.blit(text_lose, (200, 200))
+            game_over = True
+        
+        if self.rect.x > win_width:
+            finish = True
+            window.blit(text_lose, (200, 200))
+            game_over = True
 
 
-player = Player("rocket.png",50,400,50,50,5)
-enemies = sprite.Group()
-for i in range(5):
-    enemy = Enemy("ufo.png",randint(0,660),-50,50,50,randint(3,3))
-    enemies.add(enemy)
+racket1 = Player("racket.png",50,400,30,60,5)
+racket2 = Player("racket.png",600,400,30,60,5)
+ball = Ball("tenis_ball.png",0,0,40,40,4)
 
 while game:   
     for e in event.get():
@@ -86,26 +100,18 @@ while game:
     window.blit(text_lose,(10,10)) 
     if final:    
     
-        player.update()
-        player.reset()
-        enemies.update()
-        enemies.draw(window)
-        lasers.update()
-        lasers.draw(window)
-        sprites_list = sprite.groupcollide(enemies, lasers, True, True)
-        for i in sprites_list:
-            points += 1
-            enemy = Enemy("ufo.png",randint(0,660),-50,50,50,randint(3,3))
-            enemies.add(enemy)
-            if points >= 4:
-                final=False
+        racket1.update_1()
+        racket1.reset()
+        racket2.update_2()
+        racket2.reset()
+        ball.update()
+        ball.reset()
 
-        if sprite.spritecollide(player, enemies,False):
-            final = False
+        #if sprite.spritecollide(player, enemies,False):
+        #    final = False
     else: 
         text_gameover = font2.render("Has Perdido",)
-        window.blit(text_gameover,(100,100))
+        window.blit(text_lose,(100,100))
 
-    
     display.update()
     clock.tick(FPS)
